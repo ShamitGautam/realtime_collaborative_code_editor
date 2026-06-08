@@ -1,30 +1,46 @@
-import express from "express"
-import {createServer} from "http"
-import {Server} from "socket.io"
-import { YSocketIO } from "y-socket.io/dist/server"
-const app = express()
-const httpServer = createServer(app)
-const io= new Server(httpServer,{
-    cors:{
-        origin:"*",
-        methods:["GET","POST"]
-    }
-})
-const ySocketIO = new YSocketIO(io)
-ySocketIO.initialize()
+import express from "express";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { YSocketIO } from "y-socket.io/dist/server";
 
-app.get("/",(req,res) => {
-    res.status(200).json({
-        message:"Hello World",
-        success:true})
-})
-app.get("/health",(req,res) => {
-    res.status(200).json({
-        message:"Server is healthy",
-        success:true
-    })
-}
-    )
-httpServer.listen(3000, () => {
-  console.log("Server is running on port 3000")
-})
+const app = express();
+const httpServer = createServer(app);
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected:", socket.id);
+  });
+});
+
+const ysocketio = new YSocketIO(io);
+
+ysocketio.initialize();
+
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "YJS Server Running",
+  });
+});
+
+app.get("/health", (req, res) => {
+  res.json({
+    success: true,
+    message: "Healthy",
+  });
+});
+
+const PORT = 3000;
+
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
